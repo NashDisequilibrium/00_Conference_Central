@@ -159,7 +159,7 @@ class ConferenceApi(remote.Service):
         Conference(**data).put()
         taskqueue.add(params={'email': user.email(),
             'conferenceInfo': repr(request)},
-            url='/tasks/send_confirmation_email'
+            url='/tasks/send_confirmation_email')
         # TODO 2: add confirmation email sending task to queue
 
         return request
@@ -538,3 +538,49 @@ class ConferenceApi(remote.Service):
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
+
+
+# - - - Sessions - - - - - - - - - - - - - - - - - - - -
+
+    @endpoints.method(websafeConferenceKey,
+        path='conference/{websafeConferenceKey}',
+        http_method='GET', name='getConferenceSessions')
+    def getConferenceSessions(self, request):
+    """Get sessions for a particular conference"""
+    q = Session.query()
+    q = q.filter(Session.parent, Session.parent)
+    result = q.fetch
+    return result() 
+
+
+    @endpoints.method(websafeConferenceKey, session_type,
+        path='conference/{websafeConferenceKey}',
+        http_method='GET', name='getConferenceSessionsByType')
+    def getConferenceSessionsByType(self, request):
+    """Get sessions for particular tupe of session"""
+    q = Session.query()
+    q = q.filter(Session.session_type == "Workshop")
+    #sessions = Session.query(Session.session_type = session_type)
+    q = q.order(Session.name)
+    return q   
+    
+
+    @endpoints.method(speaker,
+        path='conference/{websafeConferenceKey}',
+        http_method='GET', name='getSessionsBySpeaker')
+    def getSessionsBySpeaker(self, request):
+    """Get sessions for particular tupe of session""" 
+    q = Session.query()
+    q = q.filter(Session.speaker == "Hans Rosling")
+    #sessions = Session.query(Session.speaker = speaker)
+    q = q.order(Session.name)
+    return q 
+
+    @endpoints.method(SessionForm, websafeConferenceKey,
+        path='conference/{websafeConferenceKey}',
+        http_method='POST', name='createSession')
+    def createSession(self, request):
+    """Get sessions for particular tupe of session"""
+    q = Session.query(ancestor=ndb.Key(Profile, user_id))
+
+    return Session(Request, _createSession)   
